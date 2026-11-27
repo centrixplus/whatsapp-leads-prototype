@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>WhatsApp Leads Prototype</title>
+
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500&display=swap">
+<style>
+body { margin: 0; } [hidden] { display: none !important; } img { max-width: 100%; }
+/* Layout: the CRM shell (dark side menu, light work area). Dashboard view, and Leads view with the list beside the open lead; one column on phones. */
+:root {
+  --bg: #f4f5fa; --surface: #ffffff; --surface-2: #eff1f8; --line: #e1e4ee; --fg: #272c40; --muted: #666d86;
+  --side: #2a3042; --side-fg: #a6b0cf; --side-hi: #ffffff;
+  --accent: #556ee6; --accent-soft: #e6eafc; --on-accent: #ffffff;
+  --chat-bg: #ecefe7; --chat-in: #ffffff; --chat-ai: #dcf2e3;
+  --ok: #1d7f54; --ok-soft: #dcf1e6; --warn: #9a6200; --warn-soft: #fbedd2; --bad: #b8364a; --bad-soft: #fae1e5;
+  --info: #1c6ea8; --info-soft: #ddecf7; --violet: #6448c8; --violet-soft: #ebe6fa; --grey: #5a6072; --grey-soft: #eaecf2;
+  --shadow: 0 1px 2px rgba(30, 40, 80, .05), 0 6px 18px rgba(30, 40, 80, .06);
+  --font: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-ar: "IBM Plex Sans Arabic", "Geeza Pro", "Segoe UI", Tahoma, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151827; --surface: #1e2234; --surface-2: #262b40; --line: #333a52; --fg: #e3e6f1; --muted: #9ca2bb;
+    --side: #10131f; --side-fg: #8d96b5; --side-hi: #ffffff;
+    --accent: #7086f0; --accent-soft: #29315c; --on-accent: #0d1020;
+    --chat-bg: #181c2a; --chat-in: #262b40; --chat-ai: #1b3a2b;
+    --ok: #63d19d; --ok-soft: #163a29; --warn: #f0b64e; --warn-soft: #3b2e12; --bad: #f2899a; --bad-soft: #3f1f29;
+    --info: #72b8ec; --info-soft: #16324a; --violet: #ae9bf6; --violet-soft: #2d2652; --grey: #a9afc2; --grey-soft: #2b3044;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151827; --surface: #1e2234; --surface-2: #262b40; --line: #333a52; --fg: #e3e6f1; --muted: #9ca2bb;
+  --side: #10131f; --side-fg: #8d96b5; --side-hi: #ffffff;
+  --accent: #7086f0; --accent-soft: #29315c; --on-accent: #0d1020;
+  --chat-bg: #181c2a; --chat-in: #262b40; --chat-ai: #1b3a2b;
+  --ok: #63d19d; --ok-soft: #163a29; --warn: #f0b64e; --warn-soft: #3b2e12; --bad: #f2899a; --bad-soft: #3f1f29;
+  --info: #72b8ec; --info-soft: #16324a; --violet: #ae9bf6; --violet-soft: #2d2652; --grey: #a9afc2; --grey-soft: #2b3044;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 13.5px/1.5 var(--font); }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+.banner { background: var(--accent-soft); color: var(--fg); font-size: 12.5px; padding-block: 7px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.banner b { font-weight: 600; }
+
+.app { display: grid; grid-template-columns: 214px minmax(0, 1fr); min-height: 100vh; }
+.side { background: var(--side); color: var(--side-fg); padding: 18px 0; display: flex; flex-direction: column; gap: 2px; }
+.brand { color: var(--side-hi); font-weight: 600; font-size: 16px; padding: 0 20px 16px; letter-spacing: .2px; }
+.brand small { display: block; font-weight: 400; font-size: 11px; color: var(--side-fg); letter-spacing: .6px; text-transform: uppercase; }
+.nav-h { font-size: 10.5px; text-transform: uppercase; letter-spacing: .9px; padding: 14px 20px 4px; opacity: .7; }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 20px; color: var(--side-fg);
+  border: 0; background: none; width: 100%; text-align: left; }
+button.nav:hover { color: var(--side-hi); }
+.nav.sub { padding-left: 34px; font-size: 12.5px; }
+.nav.on { color: var(--side-hi); background: rgba(255, 255, 255, .06); box-shadow: inset 3px 0 0 #7086f0; }
+.nav .count { background: #f1b44c; color: #2a3042; font-size: 11px; font-weight: 600; border-radius: 9px; padding: 0 7px; }
+
+.main { min-width: 0; display: flex; flex-direction: column; }
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface);
+  border-bottom: 1px solid var(--line); padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.top h1 { margin: 0; font-size: 17px; font-weight: 600; text-wrap: balance; }
+.crumb { font-size: 12px; color: var(--muted); }
+.top-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bell { position: relative; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; width: 38px; height: 36px; display: grid; place-items: center; }
+.bell svg { width: 18px; height: 18px; fill: none; stroke: var(--fg); stroke-width: 1.8; }
+.bell .dot { position: absolute; top: -6px; right: -6px; min-width: 19px; height: 19px; border-radius: 10px; background: var(--bad); color: #fff;
+  font-size: 11px; font-weight: 600; display: grid; place-items: center; padding: 0 5px; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding-block: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ctl > label, .ctl > .lbl { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 6px 12px; font-size: 12.5px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+select, input[type="search"], input[type="datetime-local"] { border: 1px solid var(--line); background: var(--surface);
+  border-radius: 8px; padding: 6px 10px; min-height: 34px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 16px; padding: 3px 10px 3px 8px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+.chip i, .on-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grey); display: inline-block; flex: none; }
+.chip[aria-pressed="true"] i, .on-dot.on { background: var(--ok); }
+.chip[aria-pressed="false"] { color: var(--muted); }
+.btn { border: 1px solid transparent; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 500; background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.ghost { background: var(--surface); border-color: var(--line); }
+.btn.sm { padding: 4px 11px; font-size: 12px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.link { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 500; text-align: left; }
+.link:hover { text-decoration: underline; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); min-width: 0; }
+.card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.card-h h2 { margin: 0; font-size: 14.5px; font-weight: 600; }
+
+/* Dashboard */
+.dash { display: grid; gap: 16px; padding-block: 0 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 2px; }
+.tile .k { font-size: 12px; color: var(--muted); }
+.tile .v { font-size: 26px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.tile .n { font-size: 12px; color: var(--muted); }
+.tile.alert { border-color: var(--warn); background: var(--warn-soft); }
+.tile.alert .v, .tile.alert .k { color: var(--warn); }
+.dash-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.tbl-wrap { overflow-x: auto; }
+table.agents { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.agents th, table.agents td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+table.agents th { font-size: 11.5px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+table.agents th:first-child, table.agents td:first-child { text-align: left; }
+table.agents td.zero { color: var(--muted); }
+table.agents tr.me td { background: var(--accent-soft); }
+table.agents tr.unassigned td { background: var(--warn-soft); }
+table.agents tr.unassigned td:first-child { color: var(--warn); font-weight: 600; }
+table.agents tfoot td { font-weight: 600; border-bottom: 0; }
+.who-cell { display: flex; align-items: center; gap: 8px; }
+.load { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.load .track { width: 90px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.load .fill { height: 100%; background: var(--accent); border-radius: 4px; }
+.wait { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--line); }
+.wait:last-child { border-bottom: 0; }
+.wait .w-req { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wait .w-meta { font-size: 12px; color: var(--muted); }
+.wait .w-r { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.wait .age { font-size: 12px; font-weight: 600; color: var(--warn); font-variant-numeric: tabular-nums; }
+
+/* Leads */
+.work { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px; align-items: start; padding-block: 0 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.tabs { display: flex; gap: 4px; padding: 10px 10px 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tab { border: 0; background: none; padding: 8px 12px 10px; font-size: 13px; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 500; }
+.tab b { font-weight: 600; font-size: 11.5px; background: var(--surface-2); border-radius: 9px; padding: 0 7px; margin-left: 4px; }
+.search { padding: 10px; border-bottom: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; }
+.search input { flex: 1 1 200px; min-width: 0; }
+.search select { flex: 0 1 200px; min-width: 0; }
+.rows { display: flex; flex-direction: column; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.sel { background: var(--accent-soft); }
+.row-open { border: 0; background: none; text-align: left; padding: 12px 0 12px 14px; display: grid; gap: 3px; min-width: 0; }
+.row-1 { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.row-1 .nm { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-req { color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.row-meta .na { color: var(--warn); font-weight: 500; }
+.row-act { padding-right: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.empty { padding: 28px 18px; color: var(--muted); text-align: center; }
+
+.pill { display: inline-block; border-radius: 12px; padding: 1px 9px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.pill.info { background: var(--info-soft); color: var(--info); }
+.pill.accent { background: var(--accent-soft); color: var(--accent); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.done { background: var(--ok); color: var(--surface); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.violet { background: var(--violet-soft); color: var(--violet); }
+.pill.grey { background: var(--grey-soft); color: var(--grey); }
+.wa { color: var(--ok); font-weight: 500; }
+
+.detail { display: flex; flex-direction: column; }
+.d-head { padding: 16px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 6px; }
+.d-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.d-title h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.phone { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.phone .pnum { font-family: var(--mono); font-size: 14px; user-select: all; font-variant-numeric: tabular-nums; }
+.d-sec { padding: 14px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+.d-sec:last-child { border-bottom: 0; }
+.d-sec h3 { margin: 0; font-size: 11.5px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
+.assign-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 12px; margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; min-width: 0; }
+.summary { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; }
+.chat { background: var(--chat-bg); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; max-height: 330px; overflow-y: auto; }
+.msg { max-width: 82%; padding: 7px 10px 5px; border-radius: 10px; background: var(--chat-in); box-shadow: 0 1px 1px rgba(0, 0, 0, .06); }
+.msg.ai { align-self: flex-end; background: var(--chat-ai); }
+.msg .who { font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; }
+.msg p { margin: 2px 0 0; overflow-wrap: anywhere; }
+.msg p[dir="rtl"], .msg p:lang(ar) { font-family: var(--font-ar); }
+.calls { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.calls th, .calls td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.calls th { color: var(--muted); font-weight: 500; }
+.outcomes { display: flex; flex-wrap: wrap; gap: 8px; }
+.inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--surface-2); border-radius: 8px; padding: 10px; }
+.hint { font-size: 12px; color: var(--muted); margin: 0; }
+.acts { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.acts li { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 10px; font-size: 12.5px; }
+.acts .t { color: var(--muted); font-variant-numeric: tabular-nums; }
+.acts .sent { color: var(--muted); }
+.acts .sent::before { content: "→ "; }
+.back { display: none; }
+
+.toast { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: min(380px, calc(100vw - 32px));
+  background: var(--side); color: #fff; border-radius: 10px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); display: grid; gap: 8px; z-index: 20; }
+.toast .t-h { font-weight: 600; }
+.toast .t-b { font-size: 12.5px; color: #c9cfe4; }
+.toast .t-a { display: flex; gap: 8px; }
+.toast .btn { background: #3b4360; color: #fff; }
+.toast .btn.primary { background: #7086f0; color: #0d1020; }
+@media (prefers-reduced-motion: no-preference) { .toast:not([hidden]) { animation: rise .25s ease-out; } }
+@keyframes rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 1100px) { .dash-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 980px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .side { display: none; }
+  .work { grid-template-columns: minmax(0, 1fr); }
+  .work .detail { display: none; }
+  .work.show-detail .detail { display: flex; }
+  .work.show-detail .list { display: none; }
+  .back { display: inline-block; }
+}
+</style>
+</head>
+<body>
+<div class="banner"><b>Prototype with sample leads.</b> Not connected to the live CRM. Leads arrive from Qanawat AI (WhatsApp) through the lead API; agents dial manually.</div>
+<div class="app">
+  <aside class="side" aria-label="CRM menu">
+    <div class="brand">Centrix CRM<small>Call centre</small></div>
+    <button class="nav" type="button" data-view="dashboard">Dashboard</button>
+    <span class="nav">Customers</span>
+    <span class="nav">Enquiries</span>
+    <div class="nav-h">Mobile requests</div>
+    <span class="nav sub">New cars</span>
+    <span class="nav sub">Used cars</span>
+    <span class="nav sub">Followup</span>
+    <div class="nav-h">Leads</div>
+    <button class="nav" type="button" data-view="leads">WhatsApp Leads <span class="count" id="navCount">0</span></button>
+    <div class="nav-h">Reports</div>
+    <span class="nav">List Report - new</span>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div>
+        <div class="crumb" id="crumb">Leads / Dashboard</div>
+        <h1 id="h1">WhatsApp Leads Dashboard</h1>
+      </div>
+      <div class="top-r">
+        <div class="seg" role="group" aria-label="View">
+          <button type="button" data-view="dashboard" aria-pressed="true">Dashboard</button>
+          <button type="button" data-view="leads" aria-pressed="false">Leads</button>
+        </div>
+        <button class="btn primary" id="simulate" type="button">Simulate a new lead from Qanawat</button>
+        <button class="bell" id="bell" type="button" aria-label="New leads">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+          <span class="dot" id="bellDot" hidden>0</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="controls" aria-label="Prototype settings">
+      <div class="ctl">
+        <span class="lbl" id="modeLbl">How leads reach agents</span>
+        <div class="seg" role="group" aria-labelledby="modeLbl">
+          <button type="button" data-mode="take" aria-pressed="true">Agents take leads</button>
+          <button type="button" data-mode="auto" aria-pressed="false">Auto-assign</button>
+        </div>
+      </div>
+      <div class="ctl">
+        <label for="viewer">Viewing as</label>
+        <select id="viewer"></select>
+      </div>
+      <div class="ctl">
+        <span class="lbl">Logged in now</span>
+        <div id="online" class="ctl"></div>
+      </div>
+    </section>
+
+    <section class="dash" id="dash" aria-label="Dashboard">
+      <div class="tiles" id="tiles"></div>
+      <div class="dash-grid">
+        <section class="card">
+          <header class="card-h"><h2>Leads per agent</h2><span class="hint">Today · click a name to see that agent's leads</span></header>
+          <div class="tbl-wrap"><table class="agents" id="agentTbl"></table></div>
+        </section>
+        <section class="card">
+          <header class="card-h"><h2>Waiting to be taken</h2><span class="hint" id="waitHint"></span></header>
+          <div id="waitList"></div>
+        </section>
+      </div>
+    </section>
+
+    <div class="work" id="work" hidden>
+      <section class="card list" aria-label="Lead list">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div class="search">
+          <input type="search" id="q" placeholder="Search name, phone or request" aria-label="Search leads">
+          <select id="agentF" aria-label="Filter by agent"></select>
+        </div>
+        <div class="rows" id="rows"></div>
+      </section>
+      <section class="card detail" id="detail" aria-label="Lead details"></section>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <div class="t-h" id="toastH"></div>
+  <div class="t-b" id="toastB"></div>
+  <div class="t-a"><button class="btn primary sm" type="button" id="toastOpen">Open lead</button><button class="btn sm" type="button" id="toastClose">Dismiss</button></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  // Sample agents (placeholders); the supervisor uses the "Supervisor" view.
+  var AGENTS = [
+    { code: "A1", name: "Agent 1", online: true },
+    { code: "A2", name: "Agent 2", online: true },
+    { code: "A3", name: "Agent 3", online: true },
+    { code: "A4", name: "Agent 4", online: true },
+    { code: "A5", name: "Agent 5", online: true },
+    { code: "A6", name: "Agent 6", online: true },
+    { code: "A7", name: "Agent 7", online: true },
+    { code: "A8", name: "Agent 8", online: false },
+    { code: "A9", name: "Agent 9", online: false }
+  ];
+  var VIEWERS = [["SUP", "Supervisor"], ["A1", "Agent 1 (agent)"], ["A2", "Agent 2 (agent)"], ["A3", "Agent 3 (agent)"]];
+  var STATUS = {
+    "new": { label: "New", cls: "info" },
+    assigned: { label: "Assigned", cls: "accent" },
+    contacted: { label: "Contacted", cls: "ok" },
+    no_answer: { label: "No answer", cls: "warn" },
+    callback: { label: "Call back", cls: "violet" },
+    converted: { label: "Order created", cls: "done" },
+    closed: { label: "Not interested", cls: "grey" }
+  };
+  var REASONS = ["Bought elsewhere", "Price too high", "Only asking", "Wrong number", "Other"];
+  var OPEN = function (l) { return l.status !== "converted" && l.status !== "closed"; };
+  var MIN = 60000;
+  var t0 = Date.now();
+  var ago = function (n) { return t0 - n * MIN; };
+  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+
+  // Sample WhatsApp conversations (what Qanawat AI hands over).
+  var TPL = [
+    { cat: "Used car", lang: "AR", req: "Used SUV, 2023 or newer, around KD 9,000",
+      sum: "Wants a used SUV, 2023 or newer, budget about KD 9,000, prefers white. Asked to be called after 5 pm.",
+      chat: [["c", "السلام عليكم، عندكم سيارات مستعملة نوع SUV موديل 2023 أو أحدث؟"], ["ai", "وعليكم السلام، أهلاً بك! نعم، لدينا عدة خيارات. كم الميزانية التقريبية؟"], ["c", "حوالي 9000 دينار، وأفضّل اللون الأبيض."], ["ai", "ممتاز. سأرسل طلبك لأحد موظفي المبيعات ليتصل بك. متى يناسبك الاتصال؟"], ["c", "بعد الساعة 5 العصر."]] },
+    { cat: "Leasing", lang: "EN", req: "2-year sedan lease, monthly price",
+      sum: "Personal 2-year lease of a sedan (Camry or similar). Wants the monthly prices.",
+      chat: [["c", "Hi, I'd like to lease a sedan for 2 years. What are the monthly prices?"], ["ai", "Hello! Offers start at around KD 180 a month, depending on the model. Is it for personal or company use?"], ["c", "Personal. Something like a Camry."], ["ai", "Thank you. A sales advisor will call you shortly with the offers."]] },
+    { cat: "Garage", lang: "AR", req: "Book the 60,000 km service, Saturday",
+      sum: "Wants to book the 60,000 km service for a 2021 Land Cruiser. Prefers Saturday.",
+      chat: [["c", "مرحبا، أبي أحجز موعد صيانة لسيارة لاندكروزر 2021."], ["ai", "أهلاً بك! هل هي صيانة دورية أم يوجد عطل معيّن؟"], ["c", "صيانة 60 ألف كيلو، ويفضّل يوم السبت."], ["ai", "تمام، سيتصل بك موظف الحجز لتأكيد الموعد."]] },
+    { cat: "Rental", lang: "EN", req: "Weekly rental of a compact SUV from Friday",
+      sum: "Needs a compact SUV for 7 days from Friday. Asked for availability and price.",
+      chat: [["c", "Do you have cars for weekly rental from Friday?"], ["ai", "Yes. Which type of car do you need?"], ["c", "A compact SUV, for 7 days."], ["ai", "Noted. Our team will call you to confirm availability and price."]] },
+    { cat: "New car", lang: "AR", req: "New 7-seat hybrid family SUV, current offers",
+      sum: "Interested in a new 7-seat hybrid family SUV. Wants the current offers.",
+      chat: [["c", "أبي أعرف عروض السيارات الهجينة الجديدة."], ["ai", "أكيد! هل تفضّل سيدان أو SUV؟"], ["c", "SUV عائلية، 7 مقاعد."], ["ai", "شكراً، سيتصل بك مستشار المبيعات بالعروض المتاحة."]] },
+    { cat: "Leasing", lang: "EN", req: "Company lease of 3 pickups for one year",
+      sum: "A company wants to lease 3 pickups for one year.",
+      chat: [["c", "Can a company lease 3 pickups?"], ["ai", "Yes, we offer corporate leasing. How long do you need them for?"], ["c", "One year."], ["ai", "A corporate sales advisor will contact you."]] },
+    { cat: "Used car", lang: "AR", req: "Price of a used 2022 Camry",
+      sum: "Asked the price of a used 2022 Camry and agreed to a call.",
+      chat: [["c", "كم سعر الكامري 2022 المستعملة؟"], ["ai", "تختلف الأسعار حسب الممشى والحالة. هل تريد أن يتصل بك أحد الموظفين؟"], ["c", "نعم لو سمحت."]] },
+    { cat: "Rental", lang: "EN", req: "Monthly rental of a 7-seater from next Sunday",
+      sum: "Needs a 7-seater for one month, starting next Sunday.",
+      chat: [["c", "Hello, do you have 7-seater cars for monthly rental?"], ["ai", "Yes, we have several 7-seaters. From which date do you need one?"], ["c", "From next Sunday, for one month."], ["ai", "Thanks, an agent will call you shortly."]] },
+    { cat: "Leasing", lang: "AR", req: "Personal 3-year sedan lease, call today",
+      sum: "Personal 3-year sedan lease. Asked for the monthly price and a call today.",
+      chat: [["c", "كم القسط الشهري لتأجير سيارة سيدان لمدة 3 سنوات؟"], ["ai", "يعتمد على الموديل، وتبدأ العروض من حوالي 160 دينار شهرياً. هل الطلب لشخص أم لشركة؟"], ["c", "لشخص، وأبي أحد يكلمني اليوم."]] }
+  ];
+
+  // Today's sample leads: [id, minutes ago, customer, template, agent, status, calls]
+  var SPEC = [
+    [154, 4, "Abdullah K.", 0, null, "new", 0], [153, 11, "Noura S.", 1, null, "new", 0],
+    [152, 23, "Faisal A.", 2, "A1", "assigned", 0], [151, 70, "Hessa M.", 3, "A2", "callback", 1],
+    [150, 130, "Yousef B.", 4, "A3", "converted", 1], [149, 95, "Dalal R.", 5, "A1", "no_answer", 1],
+    [148, 200, "Jassim T.", 6, "A2", "closed", 1], [147, 35, "Mishari A.", 7, "A1", "contacted", 1],
+    [146, 150, "Latifa K.", 8, "A1", "converted", 1], [145, 90, "Hamad S.", 0, "A1", "callback", 1],
+    [144, 60, "Ghanim F.", 1, "A2", "contacted", 1], [143, 40, "Maryam J.", 2, "A2", "no_answer", 1],
+    [142, 25, "Saud D.", 3, "A3", "assigned", 0], [141, 180, "Anwar H.", 4, "A3", "converted", 2],
+    [140, 100, "Shaikha B.", 5, "A3", "contacted", 1], [139, 120, "Talal M.", 6, "A4", "callback", 1],
+    [138, 14, "Nawaf R.", 7, "A4", "assigned", 0], [137, 75, "Hind Q.", 8, "A4", "contacted", 1],
+    [136, 240, "Ali Z.", 0, "A5", "converted", 1], [135, 55, "Fatma N.", 1, "A5", "no_answer", 1],
+    [134, 30, "Khalifa O.", 2, "A6", "assigned", 0], [133, 140, "Rawan E.", 3, "A6", "contacted", 1],
+    [132, 260, "Mubarak L.", 4, "A6", "closed", 1], [131, 85, "Abeer T.", 5, "A7", "contacted", 1],
+    [130, 160, "Salman W.", 6, "A7", "callback", 1], [129, 2, "Haya G.", 7, null, "new", 0],
+    [128, 7, "Zaid P.", 8, null, "new", 0]
+  ];
+  var INCOMING = [["Reem H.", 7], ["Bader Q.", 8], ["Lulwa V.", 3], ["Bandar C.", 0]];
+
+  var agentName = function (c) { var a = AGENTS.filter(function (x) { return x.code === c; })[0]; return a ? a.name : c; };
+  function act(at, text, kind) { return { at: at, text: text, kind: kind || "" }; }
+  function chatOf(t, start) { return t.chat.map(function (m, i) { return { ai: m[0] === "ai", text: m[1], at: start + i * MIN }; }); }
+  function phoneFor(id, lang) { return (lang === "AR" ? "+965 9000 0" : "+965 5000 0") + String(id).slice(-3); }
+
+  function mk(s) {
+    var id = s[0], n = id % 97, t = TPL[s[3]], code = s[4], status = s[5], calls = s[6];
+    var cap = function (ts) { return Math.min(Date.now() - MIN, ts); };
+    var l = { id: "LD-2026-000" + id, at: ago(s[1]), name: s[2], phone: phoneFor(id, t.lang), lang: t.lang, category: t.cat,
+      request: t.req, summary: t.sum, customer: n % 3 ? "Existing customer: " + (1 + n % 3) + " earlier enquiries" : "New customer: created when the agent saves the lead",
+      status: status, assigned: code, calls: [], followup: null, reason: null, takenAt: null,
+      chat: chatOf(t, ago(s[1] + t.chat.length)), activity: [act(ago(s[1]), "Received from Qanawat AI through the lead API")] };
+    if (!code) return l;
+    var who = agentName(code), tk = cap(l.at + (2 + n % 5) * MIN), ct = tk;
+    l.takenAt = tk;
+    l.activity.push(act(tk, "Taken by " + who, "assign"), act(tk, "Status sent to Qanawat (lead.assigned)", "sent"));
+    for (var i = 0; i < calls; i++) {
+      ct = cap(ct + 3 * MIN);
+      var dur = status === "no_answer" || status === "callback" ? "0:" + pad(15 + (n * 7) % 30) : (1 + (n + i) % 5) + ":" + pad((n * 13 + i * 7) % 60);
+      l.calls.push({ at: ct, agent: code, dur: dur });
+      l.activity.push(act(ct, "Call by " + who + ", " + dur + " (from the dialer log)", "call"));
+    }
+    var ot = cap(ct + MIN);
+    var out = function (text, ev) { l.activity.push(act(ot, text, "outcome"), act(ot, "Status sent to Qanawat (" + ev + ")", "sent")); };
+    if (status === "contacted") out("Contacted, marked by " + who, "lead.contacted");
+    if (status === "no_answer") out("No answer, marked by " + who, "lead.no_answer");
+    if (status === "callback") { l.followup = t0 + (30 + (n * 17) % 120) * MIN; out("No answer. Call back set for " + hhmm(l.followup) + " by " + who, "lead.callback_scheduled"); }
+    if (status === "converted") out("Order created from this lead by " + who, "lead.converted");
+    if (status === "closed") { l.reason = REASONS[n % REASONS.length]; out("Not interested (" + l.reason + "), closed by " + who, "lead.closed"); }
+    return l;
+  }
+  function hhmm(ts) { var d = new Date(ts); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+
+  var leads = SPEC.map(mk);
+  var state = { view: "dashboard", mode: "take", viewer: "SUP", tab: "unassigned", q: "", agentF: "all", sel: "LD-2026-000154",
+    unseen: 0, rot: 0, seq: 155, form: null, incomingIdx: 0, toastLead: null };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  function since(ts) {
+    var m = Math.max(0, Math.round((Date.now() - ts) / MIN));
+    if (m < 1) return "just now";
+    if (m < 60) return m + " min ago";
+    return Math.floor(m / 60) + " h " + (m % 60) + " min ago";
+  }
+  function waited(ts) { var m = Math.max(0, Math.round((Date.now() - ts) / MIN)); return m < 60 ? m + " min" : Math.floor(m / 60) + " h " + (m % 60) + " min"; }
+  var find = function (id) { return leads.filter(function (l) { return l.id === id; })[0]; };
+  var isSup = function () { return state.viewer === "SUP"; };
+  function canWork(l) { return OPEN(l) && (isSup() || l.assigned === state.viewer); }
+  function log(l, text, kind) { l.activity.push(act(Date.now(), text, kind)); }
+  function sent(l, ev) { log(l, "Status sent to Qanawat (" + ev + ")", "sent"); }
+
+  function nextOnline() {
+    var on = AGENTS.filter(function (a) { return a.online; });
+    if (!on.length) return null;
+    var a = on[state.rot % on.length];
+    state.rot++;
+    return a.code;
+  }
+  function assign(l, code, how) {
+    l.assigned = code;
+    if (!l.takenAt) l.takenAt = Date.now();
+    if (l.status === "new") l.status = "assigned";
+    log(l, how === "take" ? "Taken by " + agentName(code) : how === "auto" ? "Auto-assigned to " + agentName(code) + " (next logged-in agent)" : "Assigned to " + agentName(code) + " by the supervisor", "assign");
+    sent(l, "lead.assigned");
+  }
+  function autoAssignWaiting() {
+    leads.filter(function (l) { return !l.assigned && OPEN(l); }).sort(function (a, b) { return a.at - b.at; }).forEach(function (l) {
+      var c = nextOnline();
+      if (c) assign(l, c, "auto");
+    });
+  }
+
+  /* ---------- Dashboard ---------- */
+  function stats(list) {
+    var s = { total: list.length, open: 0, callback: 0, contacted: 0, no_answer: 0, converted: 0, closed: 0 };
+    list.forEach(function (l) {
+      if (OPEN(l)) s.open++;
+      if (s[l.status] !== undefined) s[l.status]++;
+    });
+    return s;
+  }
+  function renderDash() {
+    var waiting = leads.filter(function (l) { return !l.assigned && OPEN(l); }).sort(function (a, b) { return a.at - b.at; });
+    var all = stats(leads);
+    var working = leads.filter(function (l) { return l.assigned && OPEN(l); }).length;
+    var takes = leads.filter(function (l) { return l.takenAt; }).map(function (l) { return (l.takenAt - l.at) / MIN; });
+    var avgTake = takes.length ? Math.round(takes.reduce(function (a, b) { return a + b; }, 0) / takes.length) : 0;
+    var nextCb = leads.filter(function (l) { return l.status === "callback" && l.followup; }).sort(function (a, b) { return a.followup - b.followup; })[0];
+    var tile = function (k, v, n, alert) { return '<div class="tile' + (alert ? " alert" : "") + '"><span class="k">' + esc(k) + '</span><span class="v">' + v + '</span><span class="n">' + esc(n) + "</span></div>"; };
+    $("tiles").innerHTML =
+      tile("Leads today", all.total, "From Qanawat AI (WhatsApp)") +
+      tile("Not assigned", waiting.length, waiting.length ? "Oldest waiting " + waited(waiting[0].at) : "Every lead has an agent", waiting.length > 0) +
+      tile("Being worked", working, "Average " + avgTake + " min to take a lead") +
+      tile("Call backs", all.callback, nextCb ? "Next at " + hhmm(nextCb.followup) : "None scheduled") +
+      tile("Orders created", all.converted, all.total ? Math.round(all.converted * 100 / all.total) + "% of today's leads" : "") +
+      tile("Not interested", all.closed, "Closed with a reason");
+
+    var rows = AGENTS.map(function (a) {
+      var mine = leads.filter(function (l) { return l.assigned === a.code; });
+      var s = stats(mine);
+      return { a: a, s: s };
+    }).sort(function (x, y) { return y.s.open - x.s.open || y.s.total - x.s.total || x.a.name.localeCompare(y.a.name); });
+    var maxOpen = Math.max(1, waiting.length, Math.max.apply(null, rows.map(function (r) { return r.s.open; })));
+    var cell = function (v) { return '<td class="' + (v ? "" : "zero") + '">' + v + "</td>"; };
+    var bar = function (v) { return '<td><span class="load"><span class="track"><span class="fill" style="width:' + Math.round(v * 100 / maxOpen) + '%"></span></span>' + v + "</span></td>"; };
+    var tot = stats(leads.filter(function (l) { return l.assigned; }));
+    $("agentTbl").innerHTML =
+      "<thead><tr><th>Agent</th><th>Open leads</th><th>Call backs</th><th>Contacted</th><th>No answer</th><th>Orders</th><th>Not interested</th><th>Total today</th></tr></thead><tbody>" +
+      '<tr class="unassigned"><td><span class="who-cell">Not assigned <button class="link" type="button" data-agentview="none">View</button></span></td>' + bar(waiting.length) + '<td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td class="zero">–</td><td>' + waiting.length + "</td></tr>" +
+      rows.map(function (r) {
+        return '<tr class="' + (r.a.code === state.viewer ? "me" : "") + '"><td><span class="who-cell"><span class="on-dot' + (r.a.online ? " on" : "") + '" title="' + (r.a.online ? "Logged in" : "Logged out") + '"></span><button class="link" type="button" data-agentview="' + r.a.code + '">' + esc(r.a.name) + "</button>" + (r.a.online ? "" : ' <span class="muted">(logged out)</span>') + "</span></td>" +
+          bar(r.s.open) + cell(r.s.callback) + cell(r.s.contacted) + cell(r.s.no_answer) + cell(r.s.converted) + cell(r.s.closed) + cell(r.s.total) + "</tr>";
+      }).join("") +
+      "</tbody><tfoot><tr><td>All agents</td><td>" + tot.open + "</td><td>" + tot.callback + "</td><td>" + tot.contacted + "</td><td>" + tot.no_answer + "</td><td>" + tot.converted + "</td><td>" + tot.closed + "</td><td>" + (tot.total + waiting.length) + "</td></tr></tfoot>";
+
+    $("waitHint").textContent = waiting.length ? waiting.length + (waiting.length === 1 ? " lead" : " leads") + ", oldest first" : "";
+    $("waitList").innerHTML = waiting.length ? waiting.map(function (l) {
+      var action = !isSup() && state.mode === "take" ? '<button class="btn primary sm" type="button" data-take="' + l.id + '">Take</button>' : '<button class="btn ghost sm" type="button" data-open="' + l.id + '">' + (isSup() ? "Assign" : "Open") + "</button>";
+      return '<div class="wait"><div style="min-width:0"><b>' + esc(l.name) + '</b><div class="w-req">' + esc(l.request) + '</div><div class="w-meta"><span class="wa">WhatsApp</span> · ' + esc(l.category) + " · " + esc(l.lang) + '</div></div><div class="w-r"><span class="age">' + waited(l.at) + "</span>" + action + "</div></div>";
+    }).join("") : '<div class="empty">' + (state.mode === "auto" ? "Auto-assign is on: new leads go straight to the next logged-in agent." : "No leads waiting. New WhatsApp leads appear here as soon as Qanawat sends them.") + "</div>";
+  }
+
+  /* ---------- Leads ---------- */
+  function inTab(l, tab) {
+    if (tab === "unassigned") return !l.assigned && OPEN(l);
+    if (tab === "mine") return l.assigned === state.viewer && OPEN(l);
+    if (tab === "callbacks") return l.status === "callback" && (isSup() || l.assigned === state.viewer);
+    return true;
+  }
+  function byAgent(l) { return state.agentF === "all" || (state.agentF === "none" ? !l.assigned : l.assigned === state.agentF); }
+  function matches(l) {
+    var q = state.q.trim().toLowerCase();
+    if (!q) return true;
+    var hay = (l.name + " " + l.phone + " " + l.phone.replace(/\s/g, "") + " " + l.request + " " + l.id).toLowerCase();
+    return hay.indexOf(q) !== -1 || hay.indexOf(q.replace(/\s/g, "")) !== -1;
+  }
+  function renderTabs() {
+    var tabs = [["unassigned", "Not taken yet"], ["mine", "My leads"], ["callbacks", "Call backs"], ["all", "All leads"]];
+    if (isSup()) { tabs = tabs.filter(function (t) { return t[0] !== "mine"; }); if (state.tab === "mine") state.tab = "unassigned"; }
+    $("tabs").innerHTML = tabs.map(function (t) {
+      var n = leads.filter(function (l) { return inTab(l, t[0]) && byAgent(l); }).length;
+      return '<button class="tab" role="tab" type="button" data-tab="' + t[0] + '" aria-selected="' + (state.tab === t[0]) + '">' + esc(t[1]) + "<b>" + n + "</b></button>";
+    }).join("");
+    var f = $("agentF");
+    f.innerHTML = '<option value="all">All agents</option><option value="none">Not assigned</option>' + AGENTS.map(function (a) { return '<option value="' + a.code + '">' + esc(a.name) + "</option>"; }).join("");
+    f.value = state.agentF;
+  }
+  function renderRows() {
+    var list = leads.filter(function (l) { return inTab(l, state.tab) && byAgent(l) && matches(l); });
+    list.sort(state.tab === "callbacks" ? function (a, b) { return (a.followup || 0) - (b.followup || 0); } : function (a, b) { return b.at - a.at; });
+    if (!list.length) {
+      var msg = state.tab === "unassigned" ? (state.mode === "auto" ? "Auto-assign is on, so new leads go straight to the next logged-in agent." : "No leads waiting. New WhatsApp leads appear here as soon as Qanawat sends them.") : "No leads match this view.";
+      $("rows").innerHTML = '<div class="empty">' + esc(msg) + "</div>";
+      return;
+    }
+    $("rows").innerHTML = list.map(function (l) {
+      var st = STATUS[l.status];
+      var who = l.assigned ? "<span>" + esc(agentName(l.assigned)) + "</span>" : '<span class="na">Not assigned</span>';
+      var take = !l.assigned && OPEN(l) && state.mode === "take" && !isSup() ? '<button class="btn primary sm" type="button" data-take="' + l.id + '">Take</button>' : "";
+      var due = l.status === "callback" && l.followup ? "<span>Call back " + hhmm(l.followup) + "</span>" : "";
+      return '<div class="row' + (l.id === state.sel ? " sel" : "") + '">' +
+        '<button class="row-open" type="button" data-open="' + l.id + '">' +
+          '<span class="row-1"><span class="nm">' + esc(l.name) + '</span><span class="pill ' + st.cls + '">' + esc(st.label) + "</span></span>" +
+          '<span class="row-req">' + esc(l.request) + "</span>" +
+          '<span class="row-meta"><span class="wa">WhatsApp</span><span>' + esc(l.category) + "</span><span>" + esc(l.lang) + "</span>" + who +
+          (l.calls.length ? "<span>" + l.calls.length + (l.calls.length === 1 ? " call" : " calls") + "</span>" : "") + due + "<span>" + since(l.at) + "</span></span>" +
+        "</button>" +
+        '<div class="row-act">' + take + "</div></div>";
+    }).join("");
+  }
+  function dtLocal(ts) { var d = new Date(ts); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function btn(v, label, on) { return '<button class="btn ghost" type="button" data-out="' + v + '"' + (on ? "" : " disabled") + ">" + esc(label) + "</button>"; }
+  function assignSelect(l, label) {
+    return '<span class="ctl"><select id="supAgent" aria-label="Agent">' + AGENTS.map(function (a) { return '<option value="' + a.code + '"' + (a.code === l.assigned ? " selected" : "") + ">" + esc(a.name) + (a.online ? "" : " (logged out)") + "</option>"; }).join("") +
+      '</select><button class="btn primary sm" type="button" data-assign="' + l.id + '">' + label + "</button></span>";
+  }
+  function renderDetail() {
+    var l = find(state.sel);
+    var box = $("detail");
+    if (!l) { box.innerHTML = '<div class="empty">Choose a lead to see the WhatsApp conversation and call the customer.</div>'; return; }
+    var st = STATUS[l.status];
+    var assignHtml;
+    if (l.assigned) {
+      assignHtml = "<div><b>" + esc(agentName(l.assigned)) + "</b> " + (OPEN(l) ? "is working on this lead." : "handled this lead.") + "</div>";
+      if (isSup() && OPEN(l)) assignHtml += assignSelect(l, "Reassign");
+    } else if (isSup()) {
+      assignHtml = "<div>Not assigned yet.</div>" + assignSelect(l, "Assign");
+    } else if (state.mode === "take") {
+      assignHtml = '<div>Not taken yet. Take it to call the customer.</div><button class="btn primary" type="button" data-take="' + l.id + '">Take this lead</button>';
+    } else {
+      assignHtml = "<div>Waiting for the next logged-in agent.</div>";
+    }
+    var work = canWork(l);
+    var outcomes;
+    if (OPEN(l)) {
+      outcomes = '<div class="outcomes">' + btn("contacted", "Contacted", work) + btn("no_answer", "No answer", work) + btn("callback", "Call back at…", work) +
+        btn("closed", "Not interested…", work) + '<button class="btn primary" type="button" data-out="converted"' + (work ? "" : " disabled") + ">Create order</button></div>";
+      if (state.form === "callback" && work) {
+        outcomes += '<form class="inline-form" id="cbForm"><label for="cbAt">Call back at</label><input type="datetime-local" id="cbAt" required value="' + dtLocal(Date.now() + 60 * MIN) + '"><button class="btn primary sm" type="submit">Save call back</button><button class="btn sm ghost" type="button" data-cancel>Cancel</button></form>';
+      }
+      if (state.form === "closed" && work) {
+        outcomes += '<form class="inline-form" id="niForm"><label for="niReason">Reason</label><select id="niReason">' + REASONS.map(function (r) { return "<option>" + esc(r) + "</option>"; }).join("") + '</select><button class="btn primary sm" type="submit">Close lead</button><button class="btn sm ghost" type="button" data-cancel>Cancel</button></form>';
+      }
+      if (!work && !isSup()) outcomes += '<p class="hint">' + (l.assigned ? "This lead belongs to " + esc(agentName(l.assigned)) + "." : "Take this lead to record the call outcome.") + "</p>";
+      else if (work && l.status === "no_answer") outcomes += '<p class="hint">No answer: set a call back so the lead comes back to you.</p>';
+    } else {
+      outcomes = '<p class="hint">' + (l.status === "converted" ? "An order was created from this lead." : "Closed: " + esc(l.reason || "no reason given")) + "</p>";
+    }
+    var callsHtml = l.calls.length ? '<table class="calls"><thead><tr><th>Time</th><th>Agent</th><th>Length</th></tr></thead><tbody>' +
+      l.calls.map(function (c) { return "<tr><td>" + hhmm(c.at) + "</td><td>" + esc(agentName(c.agent)) + "</td><td>" + esc(c.dur) + "</td></tr>"; }).join("") + "</tbody></table>"
+      : '<p class="hint">No calls yet. Dial the number from your agent screen; the call appears here automatically from the dialer log.</p>';
+    box.innerHTML =
+      '<div class="d-head"><button class="btn ghost sm back" type="button" data-back>Back to the list</button>' +
+        '<div class="d-title"><h2>' + esc(l.name) + '</h2><span class="pill ' + st.cls + '">' + esc(st.label) + '</span><span class="mono muted">' + esc(l.id) + "</span></div>" +
+        '<div class="phone"><span class="pnum">' + esc(l.phone) + '</span><button class="btn ghost sm" type="button" data-copy="' + esc(l.phone.replace(/\s/g, "")) + '">Copy number</button><span class="muted">Dial it manually in the agent screen.</span></div>' +
+        '<div class="muted"><span class="wa">WhatsApp</span> · sent by Qanawat AI · received ' + hhmm(l.at) + " (" + since(l.at) + ")" + (l.status === "callback" && l.followup ? " · <b>Call back at " + hhmm(l.followup) + "</b>" : "") + "</div>" +
+      "</div>" +
+      '<div class="d-sec"><h3>Assignment</h3><div class="assign-box">' + assignHtml + "</div></div>" +
+      '<div class="d-sec"><h3>What the customer wants</h3><dl class="kv"><dt>Request</dt><dd>' + esc(l.request) + "</dd><dt>Category</dt><dd>" + esc(l.category) + "</dd><dt>Language</dt><dd>" + (l.lang === "AR" ? "Arabic" : "English") + "</dd><dt>In the CRM</dt><dd>" + esc(l.customer) + '</dd></dl><div class="summary"><b>AI summary:</b> ' + esc(l.summary) + "</div></div>" +
+      '<div class="d-sec"><h3>WhatsApp conversation</h3><div class="chat">' + l.chat.map(function (m) {
+        return '<div class="msg' + (m.ai ? " ai" : "") + '"><div class="who"><span>' + (m.ai ? "Qanawat AI" : esc(l.name)) + "</span><span>" + hhmm(m.at) + '</span></div><p dir="auto"' + (l.lang === "AR" ? ' lang="ar"' : "") + ">" + esc(m.text) + "</p></div>";
+      }).join("") + '</div><a class="hint" href="https://respond.io" target="_blank" rel="noopener">Open the full conversation in respond.io</a></div>' +
+      '<div class="d-sec"><h3>Calls from the dialer</h3>' + callsHtml + (work ? '<div><button class="btn ghost sm" type="button" data-simcall>Simulate a manual call (demo)</button></div>' : "") + "</div>" +
+      '<div class="d-sec"><h3>Call outcome</h3>' + outcomes + "</div>" +
+      '<div class="d-sec"><h3>Activity</h3><ul class="acts">' + l.activity.slice().reverse().map(function (a) {
+        return '<li><span class="t">' + hhmm(a.at) + '</span><span class="' + (a.kind === "sent" ? "sent" : "") + '">' + esc(a.text) + "</span></li>";
+      }).join("") + "</ul></div>";
+  }
+
+  /* ---------- Shell ---------- */
+  function renderOnline() {
+    $("online").innerHTML = AGENTS.map(function (a) {
+      return '<button class="chip" type="button" data-agent="' + a.code + '" aria-pressed="' + a.online + '" title="Click to log in or out (demo)"><i></i>' + esc(a.name) + "</button>";
+    }).join("");
+  }
+  function renderShell() {
+    var dash = state.view === "dashboard";
+    $("dash").hidden = !dash;
+    $("work").hidden = dash;
+    $("crumb").textContent = dash ? "Leads / Dashboard" : "Leads / WhatsApp";
+    $("h1").textContent = dash ? "WhatsApp Leads Dashboard" : "WhatsApp Leads";
+    document.querySelectorAll("[data-view]").forEach(function (b) {
+      var on = b.dataset.view === state.view;
+      if (b.classList.contains("nav")) b.classList.toggle("on", on); else b.setAttribute("aria-pressed", String(on));
+    });
+    $("navCount").textContent = leads.filter(function (l) { return !l.assigned && OPEN(l); }).length;
+    $("bellDot").hidden = state.unseen === 0;
+    $("bellDot").textContent = state.unseen;
+  }
+  function render() {
+    renderShell();
+    if (state.view === "dashboard") renderDash();
+    else { renderTabs(); renderRows(); renderDetail(); }
+  }
+  function setView(v, keepHash) {
+    state.view = v === "leads" ? "leads" : "dashboard";
+    if (!keepHash) { try { history.replaceState(null, "", "#" + state.view); } catch (e) { /* hash is optional */ } }
+    render();
+    window.scrollTo(0, 0);
+  }
+
+  var toastTimer;
+  function toast(head, body, leadId) {
+    $("toastH").textContent = head; $("toastB").textContent = body;
+    state.toastLead = leadId || null;
+    $("toastOpen").hidden = !leadId;
+    $("toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { $("toast").hidden = true; }, 9000);
+  }
+  function openLead(id) {
+    state.sel = id; state.form = null;
+    var l = find(id);
+    if (l && !inTab(l, state.tab)) state.tab = "all";
+    if (l && !byAgent(l)) state.agentF = "all";
+    $("work").classList.add("show-detail");
+    setView("leads");
+  }
+  function take(id) {
+    var l = find(id);
+    if (!l) return;
+    if (l.assigned) { toast("Already taken", agentName(l.assigned) + " took this lead first.", id); render(); return; }
+    assign(l, state.viewer, "take");
+    state.sel = id;
+    render();
+  }
+  function outcome(v) {
+    var l = find(state.sel);
+    if (!l || !canWork(l)) return;
+    var who = isSup() ? "the supervisor" : agentName(state.viewer);
+    if (v === "callback" || v === "closed") { state.form = state.form === v ? null : v; renderDetail(); return; }
+    state.form = null;
+    if (v === "contacted") { l.status = "contacted"; log(l, "Contacted, marked by " + who, "outcome"); sent(l, "lead.contacted"); }
+    if (v === "no_answer") { l.status = "no_answer"; log(l, "No answer, marked by " + who, "outcome"); sent(l, "lead.no_answer"); }
+    if (v === "converted") { l.status = "converted"; log(l, "Order created from this lead by " + who + " (the order form opens with the name, phone and request filled in)", "outcome"); sent(l, "lead.converted"); }
+    render();
+  }
+  function simulateLead() {
+    var src = INCOMING[state.incomingIdx % INCOMING.length], t = TPL[src[1]];
+    state.incomingIdx++;
+    var num = state.seq++, id = "LD-2026-000" + num, now = Date.now();
+    var l = { id: id, at: now, name: src[0], phone: phoneFor(num, t.lang), lang: t.lang, category: t.cat, request: t.req, summary: t.sum,
+      customer: num % 2 ? "Existing customer: 1 earlier enquiry" : "New customer: created when the agent saves the lead",
+      status: "new", assigned: null, calls: [], followup: null, reason: null, takenAt: null,
+      chat: chatOf(t, now - t.chat.length * MIN), activity: [act(now, "Received from Qanawat AI through the lead API")] };
+    leads.push(l);
+    state.unseen++;
+    if (state.mode === "auto") { var c = nextOnline(); if (c) assign(l, c, "auto"); }
+    render();
+    var mine = l.assigned && l.assigned === state.viewer;
+    toast(mine ? "New WhatsApp lead assigned to you" : "New WhatsApp lead", l.name + ": " + l.request + (l.assigned && !mine ? " (assigned to " + agentName(l.assigned) + ")" : ""), id);
+  }
+  function selectNum() {
+    var n = document.querySelector(".phone .pnum");
+    if (!n) return;
+    var r = document.createRange(); r.selectNodeContents(n);
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("button");
+    if (!t) return;
+    var d = t.dataset;
+    if (d.view) setView(d.view);
+    else if (d.mode) {
+      state.mode = d.mode;
+      document.querySelectorAll("[data-mode]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.mode === state.mode)); });
+      if (state.mode === "auto") autoAssignWaiting();
+      render();
+    } else if (d.tab) { state.tab = d.tab; renderTabs(); renderRows(); }
+    else if (d.agentview) {
+      state.agentF = d.agentview; state.tab = d.agentview === "none" ? "unassigned" : "all"; state.q = ""; $("q").value = "";
+      $("work").classList.remove("show-detail");
+      setView("leads");
+    }
+    else if (d.open) openLead(d.open);
+    else if (d.take) take(d.take);
+    else if (d.out) outcome(d.out);
+    else if (d.cancel !== undefined) { state.form = null; renderDetail(); }
+    else if (d.back !== undefined) { $("work").classList.remove("show-detail"); }
+    else if (d.agent) {
+      var a = AGENTS.filter(function (x) { return x.code === d.agent; })[0];
+      a.online = !a.online; renderOnline();
+      if (state.mode === "auto" && a.online) autoAssignWaiting();
+      render();
+    } else if (d.assign) {
+      var l = find(d.assign), code = $("supAgent").value;
+      if (l && code !== l.assigned) { assign(l, code, "sup"); render(); }
+    } else if (d.simcall !== undefined) {
+      var lc = find(state.sel);
+      if (lc) {
+        var s = 20 + Math.floor(Math.random() * 260), dur = Math.floor(s / 60) + ":" + pad(s % 60), ag = lc.assigned || state.viewer;
+        lc.calls.push({ at: Date.now(), agent: ag, dur: dur });
+        log(lc, "Call by " + agentName(ag) + ", " + dur + " (from the dialer log)", "call");
+        render();
+      }
+    } else if (d.copy) {
+      var done = function () { t.textContent = "Copied"; setTimeout(function () { t.textContent = "Copy number"; }, 1500); };
+      try { navigator.clipboard.writeText(d.copy).then(done, selectNum); } catch (err) { selectNum(); }
+    } else if (t.id === "simulate") simulateLead();
+    else if (t.id === "bell") { state.unseen = 0; state.agentF = "all"; state.tab = state.mode === "auto" && !isSup() ? "mine" : "unassigned"; setView("leads"); }
+    else if (t.id === "toastOpen") { $("toast").hidden = true; state.unseen = Math.max(0, state.unseen - 1); if (state.toastLead) openLead(state.toastLead); }
+    else if (t.id === "toastClose") { $("toast").hidden = true; }
+  });
+
+  document.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var l = find(state.sel);
+    if (!l || !canWork(l)) return;
+    var who = isSup() ? "the supervisor" : agentName(state.viewer);
+    if (e.target.id === "cbForm") {
+      var v = $("cbAt").value, ts = v ? new Date(v).getTime() : NaN;
+      if (isNaN(ts)) return;
+      l.status = "callback"; l.followup = ts;
+      log(l, "Call back set for " + hhmm(ts) + " by " + who, "outcome"); sent(l, "lead.callback_scheduled");
+    } else if (e.target.id === "niForm") {
+      l.status = "closed"; l.reason = $("niReason").value;
+      log(l, "Not interested (" + l.reason + "), closed by " + who, "outcome"); sent(l, "lead.closed");
+    }
+    state.form = null;
+    render();
+  });
+
+  $("viewer").innerHTML = VIEWERS.map(function (v) { return '<option value="' + v[0] + '">' + esc(v[1]) + "</option>"; }).join("");
+  $("viewer").value = state.viewer;
+  $("viewer").addEventListener("change", function (e) {
+    state.viewer = e.target.value; state.form = null;
+    if (!isSup() && state.tab === "unassigned" && state.mode === "auto") state.tab = "mine";
+    render();
+  });
+  $("q").addEventListener("input", function (e) { state.q = e.target.value; renderRows(); });
+  $("agentF").addEventListener("change", function (e) { state.agentF = e.target.value; renderTabs(); renderRows(); });
+  window.addEventListener("hashchange", function () { var h = location.hash.slice(1); if (h === "leads" || h === "dashboard") setView(h, true); });
+
+  var start = location.hash.slice(1);
+  state.view = start === "leads" ? "leads" : "dashboard";
+  renderOnline();
+  render();
+  // Refresh times and counts only; never redraw the open lead (it would reset a half-filled form).
+  setInterval(function () { renderShell(); if (state.view === "dashboard") renderDash(); else { renderTabs(); renderRows(); } }, 30000);
+})();
+</script>
+</body>
+</html>
