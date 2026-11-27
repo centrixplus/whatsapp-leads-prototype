@@ -85,8 +85,14 @@ button.nav:hover { color: var(--side-hi); }
 .bell .dot { position: absolute; top: -6px; right: -6px; min-width: 19px; height: 19px; border-radius: 10px; background: var(--bad); color: #fff;
   font-size: 11px; font-weight: 600; display: grid; place-items: center; padding: 0 5px; }
 
-.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; padding-block: 14px;
+.controls-wrap { padding-block: 14px 0;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; border: 1px dashed var(--line); border-radius: 10px;
+  background: var(--surface); padding: 9px 14px; }
+.demo-tag { font-size: 10.5px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--violet); background: var(--violet-soft); border-radius: 6px; padding: 2px 8px; }
+.online-d summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+.online-d[open] { flex-basis: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .ctl { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .ctl > label, .ctl > .lbl { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
@@ -111,7 +117,7 @@ select, input[type="search"], input[type="datetime-local"] { border: 1px solid v
 .card-h h2 { margin: 0; font-size: 14.5px; font-weight: 600; }
 
 /* Dashboard */
-.dash { display: grid; gap: 16px; padding-block: 0 24px;
+.dash { display: grid; gap: 16px; padding-block: 14px 24px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 2px; }
@@ -120,11 +126,16 @@ select, input[type="search"], input[type="datetime-local"] { border: 1px solid v
 .tile .n { font-size: 12px; color: var(--muted); }
 .tile.alert { border-color: var(--warn); background: var(--warn-soft); }
 .tile.alert .v, .tile.alert .k { color: var(--warn); }
-.dash-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.dash-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.dash-side { display: grid; gap: 16px; min-width: 0; }
 .tbl-wrap { overflow-x: auto; }
 table.agents { width: 100%; border-collapse: collapse; font-size: 13px; }
-table.agents th, table.agents td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-table.agents th { font-size: 11.5px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+table.agents th, table.agents td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+table.agents th { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; white-space: normal; line-height: 1.25; vertical-align: bottom; }
+.cats { padding: 14px 16px; display: grid; gap: 10px; }
+.cat { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.cat .bar { display: block; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.cat .bar span { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 table.agents th:first-child, table.agents td:first-child { text-align: left; }
 table.agents td.zero { color: var(--muted); }
 table.agents tr.me td { background: var(--accent-soft); }
@@ -133,8 +144,8 @@ table.agents tr.unassigned td:first-child { color: var(--warn); font-weight: 600
 table.agents tfoot td { font-weight: 600; border-bottom: 0; }
 .who-cell { display: flex; align-items: center; gap: 8px; }
 .load { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
-.load .track { width: 90px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
-.load .fill { height: 100%; background: var(--accent); border-radius: 4px; }
+.load .track { display: block; width: 56px; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
+.load .fill { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
 .wait { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 16px; border-bottom: 1px solid var(--line); }
 .wait:last-child { border-bottom: 0; }
 .wait .w-req { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -143,7 +154,7 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
 .wait .age { font-size: 12px; font-weight: 600; color: var(--warn); font-variant-numeric: tabular-nums; }
 
 /* Leads */
-.work { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px; align-items: start; padding-block: 0 24px;
+.work { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 16px; align-items: start; padding-block: 14px 24px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .tabs { display: flex; gap: 4px; padding: 10px 10px 0; border-bottom: 1px solid var(--line); overflow-x: auto; }
 .tab { border: 0; background: none; padding: 8px 12px 10px; font-size: 13px; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
@@ -218,7 +229,7 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
 @media (prefers-reduced-motion: no-preference) { .toast:not([hidden]) { animation: rise .25s ease-out; } }
 @keyframes rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-@media (max-width: 1100px) { .dash-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 1250px) { .dash-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 980px) {
   .app { grid-template-columns: minmax(0, 1fr); }
   .side { display: none; }
@@ -267,7 +278,9 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
       </div>
     </header>
 
-    <section class="controls" aria-label="Prototype settings">
+    <div class="controls-wrap">
+    <section class="controls" aria-label="Demo controls">
+      <span class="demo-tag">Demo controls</span>
       <div class="ctl">
         <span class="lbl" id="modeLbl">How leads reach agents</span>
         <div class="seg" role="group" aria-labelledby="modeLbl">
@@ -279,11 +292,12 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
         <label for="viewer">Viewing as</label>
         <select id="viewer"></select>
       </div>
-      <div class="ctl">
-        <span class="lbl">Logged in now</span>
-        <div id="online" class="ctl"></div>
-      </div>
+      <details class="online-d">
+        <summary id="onlineSum">Logged-in agents</summary>
+        <div id="online" class="chips"></div>
+      </details>
     </section>
+    </div>
 
     <section class="dash" id="dash" aria-label="Dashboard">
       <div class="tiles" id="tiles"></div>
@@ -292,10 +306,16 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
           <header class="card-h"><h2>Leads per agent</h2><span class="hint">Today · click a name to see that agent's leads</span></header>
           <div class="tbl-wrap"><table class="agents" id="agentTbl"></table></div>
         </section>
-        <section class="card">
-          <header class="card-h"><h2>Waiting to be taken</h2><span class="hint" id="waitHint"></span></header>
-          <div id="waitList"></div>
-        </section>
+        <div class="dash-side">
+          <section class="card">
+            <header class="card-h"><h2>Waiting to be taken</h2><span class="hint" id="waitHint"></span></header>
+            <div id="waitList"></div>
+          </section>
+          <section class="card">
+            <header class="card-h"><h2>Leads by request type</h2><span class="hint">Today</span></header>
+            <div class="cats" id="catList"></div>
+          </section>
+        </div>
       </div>
     </section>
 
@@ -517,6 +537,15 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
       }).join("") +
       "</tbody><tfoot><tr><td>All agents</td><td>" + tot.open + "</td><td>" + tot.callback + "</td><td>" + tot.contacted + "</td><td>" + tot.no_answer + "</td><td>" + tot.converted + "</td><td>" + tot.closed + "</td><td>" + (tot.total + waiting.length) + "</td></tr></tfoot>";
 
+    var cats = {};
+    leads.forEach(function (l) { var c = cats[l.category] || (cats[l.category] = { n: 0, o: 0 }); c.n++; if (l.status === "converted") c.o++; });
+    var catNames = Object.keys(cats).sort(function (a, b) { return cats[b].n - cats[a].n; });
+    var maxCat = Math.max.apply(null, catNames.map(function (k) { return cats[k].n; }));
+    $("catList").innerHTML = catNames.map(function (k) {
+      return '<div class="cat"><span>' + esc(k) + '</span><span class="bar"><span style="width:' + Math.round(cats[k].n * 100 / maxCat) + '%"></span></span><span class="num">' + cats[k].n +
+        (cats[k].o ? ' <span class="muted">· ' + cats[k].o + (cats[k].o === 1 ? " order" : " orders") + "</span>" : "") + "</span></div>";
+    }).join("");
+
     $("waitHint").textContent = waiting.length ? waiting.length + (waiting.length === 1 ? " lead" : " leads") + ", oldest first" : "";
     $("waitList").innerHTML = waiting.length ? waiting.map(function (l) {
       var action = !isSup() && state.mode === "take" ? '<button class="btn primary sm" type="button" data-take="' + l.id + '">Take</button>' : '<button class="btn ghost sm" type="button" data-open="' + l.id + '">' + (isSup() ? "Assign" : "Open") + "</button>";
@@ -633,6 +662,7 @@ table.agents tfoot td { font-weight: 600; border-bottom: 0; }
 
   /* ---------- Shell ---------- */
   function renderOnline() {
+    $("onlineSum").textContent = "Logged-in agents: " + AGENTS.filter(function (a) { return a.online; }).length + " of " + AGENTS.length + " (click to change)";
     $("online").innerHTML = AGENTS.map(function (a) {
       return '<button class="chip" type="button" data-agent="' + a.code + '" aria-pressed="' + a.online + '" title="Click to log in or out (demo)"><i></i>' + esc(a.name) + "</button>";
     }).join("");
